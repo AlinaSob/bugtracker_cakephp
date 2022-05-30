@@ -18,7 +18,8 @@ use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Http\Response;
 use Cake\Http\ServerRequest;
-use Cake\TestSuite\IntegrationTestCase;
+use Cake\TestSuite\IntegrationTestTrait;
+use Cake\TestSuite\TestCase;
 use Cake\View\Exception\MissingTemplateException;
 
 /**
@@ -26,8 +27,16 @@ use Cake\View\Exception\MissingTemplateException;
  *
  * @uses \App\Controller\PagesController
  */
-class PagesControllerTest extends IntegrationTestCase
+class PagesControllerTest extends TestCase
 {
+    use IntegrationTestTrait;
+
+    public function setUp()
+    {
+        parent::setUp();
+        $this->_useHttpServer = true;
+    }
+
     /**
      * testMultipleGet method
      *

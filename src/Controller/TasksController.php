@@ -3,18 +3,19 @@
 namespace App\Controller;
 
 use Cake\Datasource\Exception\RecordNotFoundException;
-use Cake\ORM\TableRegistry;
+use Cake\Datasource\ModelAwareTrait;
 
 class TasksController extends AppController
 {
+    use ModelAwareTrait;
     public function initialize()
     {
         parent::initialize();
         $this->loadComponent('Flash');
-        $this->TaskTypes = TableRegistry::getTableLocator()->get('TaskTypes');
-        $this->TaskStatuses = TableRegistry::getTableLocator()->get('TaskStatuses');
-        $this->Users = TableRegistry::getTableLocator()->get('Users');
-        $this->Tasks = TableRegistry::getTableLocator()->get('Tasks');
+        $this->loadModel('TaskTypes');
+        $this->loadModel('TaskStatuses');
+        $this->loadModel('Users');
+        $this->loadModel('Tasks');
     }
 
     /**
@@ -27,7 +28,12 @@ class TasksController extends AppController
         $this->loadComponent('Paginator');
         $tasks = $this->Paginator->paginate(
             $this->Tasks->find()
-                ->contain(['Authors', 'Assignees', 'TaskTypes', 'TaskStatuses'])
+                ->contain(['Authors', 'Assignees', 'TaskTypes', 'TaskStatuses']),
+            ['order' => [
+                'task_type_id' => 'asc',
+                'Tasks.created' => 'desc'
+                ]
+            ]
         );
         $this->set('tasks', $tasks);
     }
@@ -130,6 +136,10 @@ class TasksController extends AppController
             ->toArray());
     }
 
+    /**
+     * Get POST data for creating/editing
+     * @return array
+     */
     private function getTaskDataFromRequest()
     {
         $taskData = $this->request->getData();
