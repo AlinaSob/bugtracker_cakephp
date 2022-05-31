@@ -14,9 +14,7 @@
  */
 namespace App\Controller;
 
-use Cake\Controller\Component\AuthComponent;
 use Cake\Controller\Controller;
-use Cake\Event\Event;
 
 /**
  * Application Controller
@@ -61,7 +59,7 @@ class AppController extends Controller
             'storage' => 'Session'
         ]);
 
-        if ($this->getRequest()->getSession()->read('Auth.User')){
+        if ($this->Auth->user()){
             $this->set('isLoggedIn', true);
         } else {
             $this->set('isLoggedIn', false);

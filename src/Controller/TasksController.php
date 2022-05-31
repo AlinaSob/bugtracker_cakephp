@@ -2,12 +2,19 @@
 
 namespace App\Controller;
 
+use App\Model\Table\TasksTable;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Datasource\ModelAwareTrait;
+use Cake\Validation\Validator;
 
+/**
+ * @property TasksTable $Tasks
+ *
+ */
 class TasksController extends AppController
 {
     use ModelAwareTrait;
+
     public function initialize()
     {
         parent::initialize();
@@ -15,7 +22,6 @@ class TasksController extends AppController
         $this->loadModel('TaskTypes');
         $this->loadModel('TaskStatuses');
         $this->loadModel('Users');
-        $this->loadModel('Tasks');
     }
 
     /**
@@ -85,6 +91,7 @@ class TasksController extends AppController
             $task['assignee_id'] != $currentUser['id']
         ) {
             $this->Flash->error(__('Нет прав для редактирования задачи'));
+            return $this->redirect(['action' => 'index']);
         }
 
         $this->set('task', $task);
@@ -124,16 +131,9 @@ class TasksController extends AppController
      */
     private function setOptionArrays()
     {
-        $this->set('tasktypes', $this->TaskTypes->find('list')
-            ->enableHydration(false)
-            ->toArray());
-        $this->set('taskstatuses', $this->TaskStatuses->find('list')
-            ->enableHydration(false)
-            ->toArray());
-
-        $this->set('users', $this->Users->find('list')
-            ->enableHydration(false)
-            ->toArray());
+        $this->set('tasktypes', $this->Tasks->TaskTypes->find('list'));
+        $this->set('taskstatuses', $this->Tasks->TaskStatuses->find('list'));
+        $this->set('users', $this->Tasks->Authors->find('list'));
     }
 
     /**
@@ -142,18 +142,24 @@ class TasksController extends AppController
      */
     private function getTaskDataFromRequest()
     {
+        $validator = new Validator();
+        $validator->requirePresence('name')
+            ->requirePresence('description');
         $taskData = $this->request->getData();
-        if (empty($taskData)) {
-            $this->Flash->error(__('Нет данных для создания задачи'));
+
+        $errors = $validator->validate($taskData);
+        if (empty($errors)) {
+            $user = $this->Auth->user();
+            return ['name' => $taskData['name'],
+                'description' => $taskData['description'],
+                'comment' => $taskData['comment'] ?? '',
+                'task_type_id' => $taskData['task_type_id'] ?? 1,
+                'author_id' => $taskData['author_id'] ?? $user['id'],
+                'assignee_id' => $taskData['assignee_id'] ?? null,
+                'task_status_id' => $taskData['task_status_id'] ?? 1
+            ];
+        } else {
+            $this->Flash->error('У задачи должно быть название и описание');
         }
-        $user = $this->Auth->user();
-        return ['name' => $taskData['name'],
-            'description' => $taskData['description'],
-            'comment' => $taskData['comment'] ?? '',
-            'task_type_id' => $taskData['task_type_id'],
-            'author_id' => $taskData['author_id'] ?? $user['id'],
-            'assignee_id' => $taskData['assignee_id'] ?: null,
-            'task_status_id' => $taskData['task_status_id']
-        ];
     }
 }

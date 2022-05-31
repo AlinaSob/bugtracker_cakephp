@@ -2,10 +2,14 @@
 
 namespace App\Test\TestCase\Controller;
 
+use App\Model\Table\TasksTable;
 use Cake\Datasource\ModelAwareTrait;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
+/**
+ * @property TasksTable $Tasks
+ */
 class TasksControllerTest extends TestCase
 {
     use IntegrationTestTrait;
@@ -56,5 +60,15 @@ class TasksControllerTest extends TestCase
             ->first();
         $this->assertTextEquals($data['name'], $task->name);
         $this->assertTextEquals($data['description'], $task->description);
+    }
+
+    public function testCreateTaskFailure()
+    {
+        $data = [];
+        $this->enableCsrfToken();
+        $this->enableSecurityToken();
+        $this->post('/tasks/create', $data);
+
+        $this->assertRedirect('/tasks/index');
     }
 }

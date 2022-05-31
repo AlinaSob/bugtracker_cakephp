@@ -3,6 +3,7 @@
 use App\Model\Entity\User;
 use Cake\Auth\PasswordHasherFactory;
 use Cake\Core\InstanceConfigTrait;
+use Cake\Datasource\ModelAwareTrait;
 use Cake\ORM\TableRegistry;
 use Migrations\AbstractMigration;
 use Phinx\Db\Adapter\MysqlAdapter;
@@ -12,6 +13,7 @@ use Phinx\Db\Adapter\MysqlAdapter;
 class InitialMigration extends AbstractMigration
 {
     use InstanceConfigTrait;
+    use ModelAwareTrait;
 
     /**
      * Change Method.
@@ -20,7 +22,7 @@ class InitialMigration extends AbstractMigration
      * https://book.cakephp.org/phinx/0/en/migrations.html#the-change-method
      * @return void
      */
-    public function change()
+    public function up()
     {
         // USERS
 
@@ -47,15 +49,14 @@ class InitialMigration extends AbstractMigration
             ->addIndex('email')
             ->save();
 
-        //todo set from config
         $hasher = PasswordHasherFactory::build('Default');
-        $usersTable = TableRegistry::getTableLocator()->get('Users');
-        $user = $usersTable->newEntity([
+        $users = $this->loadModel('Users');
+        $user = $users->newEntity([
             'name' => 'Test User',
             'email' => 'user@test.ru',
             'password' => $hasher->hash('password')
         ]);
-        $usersTable->save($user);
+        $users->save($user);
 
         //TASKS
         $tasksTableMigration = $this->table('tasks');
@@ -63,43 +64,42 @@ class InitialMigration extends AbstractMigration
             'default' => null,
             'limit' => 255,
             'null' => false,
-        ]);
-        $tasksTableMigration->addColumn('description', 'text', [
+        ])
+            ->addColumn('description', 'text', [
             'default' => null,
             'null' => false,
-        ]);
-        $tasksTableMigration->addColumn('comment', 'text', [
+        ])
+            ->addColumn('comment', 'text', [
             'default' => null,
             'null' => false,
-        ]);
-        $tasksTableMigration->addColumn('task_type_id', 'integer', [
+        ])
+            ->addColumn('task_type_id', 'integer', [
             'default' => 2,
             'limit' => MysqlAdapter::INT_TINY
-        ]);
-        $tasksTableMigration->addColumn('author_id', 'integer', [
+        ])
+            ->addColumn('author_id', 'integer', [
             'default' => null,
             'null' => false
-        ]);
-        $tasksTableMigration->addColumn('responsible_id', 'integer', [
+        ])
+            ->addColumn('responsible_id', 'integer', [
             'default' => null,
             'null' => true
-        ]);
-        $tasksTableMigration->addColumn('task_status_id', 'integer', [
+        ])
+            ->addColumn('task_status_id', 'integer', [
             'default' => 1,
             'limit' => MysqlAdapter::INT_TINY,
             'null' => false
-        ]);
-        $tasksTableMigration->addColumn('created', 'timestamp', [
+        ])
+            ->addColumn('created', 'timestamp', [
             'default' => 'CURRENT_TIMESTAMP',
             'null' => false,
-        ]);
-        $tasksTableMigration->addColumn('modified','timestamp', [
+        ])
+            ->addColumn('modified','timestamp', [
             'default' => 'CURRENT_TIMESTAMP',
             'null' => false
-        ]);
-        $tasksTableMigration->addIndex(['created', 'task_type_id']);
-
-        $tasksTableMigration->create();
+        ])
+            ->addIndex(['created', 'task_type_id'])
+            ->save();
 
         //TASK_TYPES
         $taskTypeTableMigration = $this->table('task_types');
@@ -109,13 +109,13 @@ class InitialMigration extends AbstractMigration
         ]);
         $taskTypeTableMigration->create();
 
-        $taskTypeTable = TableRegistry::getTableLocator()->get('TaskTypes');
+        $taskTypeModel = $this->loadModel('TaskTypes');
         $types = ['Срочный баг', 'Несрочный баг', 'Незначительное улучшение'];
         foreach ($types as $name) {
-            $taskType = $taskTypeTable->newEntity([
+            $taskType = $taskTypeModel->newEntity([
                 'name' => $name
             ]);
-            $taskTypeTable->save($taskType);
+            $taskTypeModel->save($taskType);
         }
 
         //TASK_STATUSES
@@ -126,13 +126,18 @@ class InitialMigration extends AbstractMigration
         ]);
         $taskStatusTableMigration->create();
 
-        $taskStatusTable = TableRegistry::getTableLocator()->get('TaskStatuses');
+        $taskStatusModel = $this->loadModel('TaskStatuses');
         $statuses = ['Создана', 'В работе', 'Выполнена', 'Отменена'];
         foreach ($statuses as $id => $name) {
-            $taskStatus = $taskStatusTable->newEntity([
+            $taskStatus = $taskStatusModel->newEntity([
                 'name' => $name
             ]);
-            $taskStatusTable->save($taskStatus);
+            $taskStatusModel->save($taskStatus);
         }
+    }
+
+    public function down()
+    {
+        //
     }
 }
