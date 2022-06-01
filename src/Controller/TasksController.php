@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Model\Table\TasksTable;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Datasource\ModelAwareTrait;
-use Cake\Validation\Validator;
 
 /**
  * @property TasksTable $Tasks
@@ -89,24 +88,29 @@ class TasksController extends AppController
      */
     public function edit(int $id)
     {
-        $task = $this->Tasks->findById($id)->firstOrFail();
-        $currentUser = $this->Auth->user();
-        if ($task['author_id'] != $currentUser['id'] &&
-            $task['assignee_id'] != $currentUser['id']
-        ) {
-            $this->Flash->error(__('Нет прав для редактирования задачи'));
-            return $this->redirect(['action' => 'index']);
-        }
-
-        $this->set('task', $task);
-        $this->setOptionArrays();
-        if ($this->request->is(['post', 'put'])) {
-            $this->Tasks->patchEntity($task, $this->getTaskDataFromRequest());
-            if ($this->Tasks->save($task)) {
-                $this->Flash->success(__('Задача обновлена.'));
+        try {
+            $task = $this->Tasks->findById($id)->firstOrFail();
+            $currentUser = $this->Auth->user();
+            if ($task['author_id'] != $currentUser['id'] &&
+                $task['assignee_id'] != $currentUser['id']
+            ) {
+                $this->Flash->error(__('Нет прав для редактирования задачи'));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('Ошибка при сохранении задачи.'));
+
+            $this->set('task', $task);
+            $this->setOptionArrays();
+            if ($this->request->is(['post', 'put'])) {
+                $this->Tasks->patchEntity($task, $this->getTaskDataFromRequest());
+                if ($this->Tasks->save($task)) {
+                    $this->Flash->success(__('Задача обновлена.'));
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('Ошибка при сохранении задачи.'));
+            }
+        } catch (RecordNotFoundException $e) {
+            $this->Flash->error(__('Нет такой задачи'));
+            return $this->redirect(['action' => 'index']);
         }
     }
 
