@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Model\Table;
 
 use Cake\ORM\Table;
+use Cake\Validation\Validator;
 
 class TasksTable extends Table
 {
@@ -27,4 +28,16 @@ class TasksTable extends Table
         $this->addBehavior('Timestamp');
     }
 
+    /**
+     * @param Validator $validator
+     * @return Validator
+     */
+    public function validationDefault(Validator $validator): Validator
+    {
+        $validator ->requirePresence('name')
+            ->notEmptyString('name')
+            ->requirePresence('description')
+            ->notEmptyString('description');
+        return $validator;
+    }
 }

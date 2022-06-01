@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -38,7 +39,7 @@ class TasksController extends AppController
             ['order' => [
                 'task_type_id' => 'asc',
                 'Tasks.created' => 'desc'
-                ]
+            ]
             ]
         );
         $this->set('tasks', $tasks);
@@ -71,10 +72,13 @@ class TasksController extends AppController
     {
         $this->setOptionArrays();
         $newTask = $this->Tasks->newEntity();
+        $this->set('task', $newTask);
         if ($this->request->is('post')) {
             $newTask = $this->Tasks->patchEntity($newTask, $this->getTaskDataFromRequest());
-            $this->Tasks->save($newTask);
-            return $this->redirect(['action' => 'index']);
+            if ($this->Tasks->save($newTask)) {
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('Ошибка при создании задачи.'));
         }
     }
 
@@ -115,7 +119,7 @@ class TasksController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $task = $this->Tasks->findById($id)->firstOrFail();
-        if ($task->getAuthorId() != $this->Auth->user()->getId()){
+        if ($task->getAuthorId() != $this->Auth->user()->getId()) {
             $this->Flash->error(__('Вы не можете удалять данную задачу'));
             return $this->redirect(['action' => 'index']);
         }
@@ -142,24 +146,15 @@ class TasksController extends AppController
      */
     private function getTaskDataFromRequest()
     {
-        $validator = new Validator();
-        $validator->requirePresence('name')
-            ->requirePresence('description');
         $taskData = $this->request->getData();
-
-        $errors = $validator->validate($taskData);
-        if (empty($errors)) {
-            $user = $this->Auth->user();
-            return ['name' => $taskData['name'],
-                'description' => $taskData['description'],
-                'comment' => $taskData['comment'] ?? '',
-                'task_type_id' => $taskData['task_type_id'] ?? 1,
-                'author_id' => $taskData['author_id'] ?? $user['id'],
-                'assignee_id' => $taskData['assignee_id'] ?? null,
-                'task_status_id' => $taskData['task_status_id'] ?? 1
-            ];
-        } else {
-            $this->Flash->error('У задачи должно быть название и описание');
-        }
+        $user = $this->Auth->user();
+        return ['name' => $taskData['name'] ?? '',
+            'description' => $taskData['description'] ?? '',
+            'comment' => $taskData['comment'] ?? '',
+            'task_type_id' => $taskData['task_type_id'] ?? 1,
+            'author_id' => $taskData['author_id'] ?? $user['id'],
+            'assignee_id' => $taskData['assignee_id'] ?? null,
+            'task_status_id' => $taskData['task_status_id'] ?? 1
+        ];
     }
 }

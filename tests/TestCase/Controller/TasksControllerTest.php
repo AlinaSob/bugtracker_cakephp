@@ -61,14 +61,4 @@ class TasksControllerTest extends TestCase
         $this->assertTextEquals($data['name'], $task->name);
         $this->assertTextEquals($data['description'], $task->description);
     }
-
-    public function testCreateTaskFailure()
-    {
-        $data = [];
-        $this->enableCsrfToken();
-        $this->enableSecurityToken();
-        $this->post('/tasks/create', $data);
-
-        $this->assertRedirect('/tasks/index');
-    }
 }

@@ -1,3 +1,12 @@
+<?php
+/**
+ * @var $task
+ * @var $tasktypes
+ * @var $users
+ * @var $taskstatuses
+ */
+?>
+
 <div class="row">
     <?php
     echo $this->Form->create($task);

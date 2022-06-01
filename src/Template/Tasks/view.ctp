@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var $task
+ */
+?>
 <h1>
     <?= $task->name ?>
 </h1>

@@ -1,4 +1,4 @@
-<div class="container">
+<div class="row">
     <h1>Login</h1>
     <?php
     echo $this->Form->create();
@@ -10,6 +10,6 @@
     echo $this->Form->password('password', [
         'placeholder' => 'Password'
     ]);
-    echo $this->Form->submit('Submit');
+    echo $this->Form->submit('Submit', ['class' => 'btn btn-primary']);
     echo $this->Form->end() ?>
 </div>

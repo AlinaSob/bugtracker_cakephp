@@ -1,6 +1,15 @@
+<?php
+/**
+ * @var $task
+ * @var $tasktypes
+ * @var $users
+ * @var $taskstatuses
+ */
+?>
+
 <div>
     <?php
-    echo $this->Form->create();
+    echo $this->Form->create($task);
     echo $this->Form->controls(
         [
             'name' => ['required' => true, 'label' => 'Название'],
